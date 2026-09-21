@@ -1,12 +1,13 @@
 from flask import Flask, render_template, request, redirect, url_for
-import sqlite3
 import pandas as pd
+from database import inicializar_banco, get_conexao
 
 app = Flask(__name__)
 
+inicializar_banco()
+
 def obter_dados_locacao():
-    conexao = sqlite3.connect('sistema_pecas.db')
-    conexao.row_factory = sqlite3.Row
+    conexao = get_conexao()
     cursor = conexao.cursor()
     
     cursor.execute('''
@@ -41,19 +42,27 @@ def index():
 
 @app.route('/adicionar', methods=['POST'])
 def adicionar():
-    chassi = request.form['chassi']
-    prateleira = request.form['prateleira']
-    codigo_peca = request.form['codigo_peca']
-    quantidade = request.form['quantidade']
+    chassi = request.form.get('chassi', '').strip()
+    prateleira = request.form.get('prateleira', '').strip()
+    codigo_peca = request.form.get('codigo_peca', '').strip()
+    
+    try:
+        quantidade = int(request.form.get('quantidade', 0))
+        if quantidade <= 0:
+            raise ValueError
+    except ValueError:
+        return redirect(url_for('index'))
 
-    conexao = sqlite3.connect('sistema_pecas.db')
+    conexao = get_conexao()
     cursor = conexao.cursor()
 
-    cursor.execute('SELECT id FROM reservas WHERE chassi_grupo = ?', (chassi,))
+    cursor.execute('SELECT id, prateleira FROM reservas WHERE chassi_grupo = ?', (chassi,))
     reserva = cursor.fetchone()
 
     if reserva:
-        reserva_id = reserva[0]
+        reserva_id = reserva['id']
+        if reserva['prateleira'] != prateleira:
+            cursor.execute('UPDATE reservas SET prateleira = ? WHERE id = ?', (prateleira, reserva_id))
     else:
         cursor.execute('INSERT INTO reservas (chassi_grupo, prateleira) VALUES (?, ?)', (chassi, prateleira))
         reserva_id = cursor.lastrowid
@@ -67,24 +76,16 @@ def adicionar():
 
 @app.route('/apagar_chassi/<chassi>', methods=['POST'])
 def apagar_chassi(chassi):
-    conexao = sqlite3.connect('sistema_pecas.db')
+    conexao = get_conexao()
     cursor = conexao.cursor()
-    
-    cursor.execute('SELECT id FROM reservas WHERE chassi_grupo = ?', (chassi,))
-    reserva = cursor.fetchone()
-    
-    if reserva:
-        reserva_id = reserva[0]
-        cursor.execute('DELETE FROM pecas_reservadas WHERE reserva_id = ?', (reserva_id,))
-        cursor.execute('DELETE FROM reservas WHERE id = ?', (reserva_id,))
-        conexao.commit()
-        
+    cursor.execute('DELETE FROM reservas WHERE chassi_grupo = ?', (chassi,))
+    conexao.commit()
     conexao.close()
     return redirect(url_for('index'))
 
 @app.route('/apagar_peca/<int:peca_id>', methods=['POST'])
 def apagar_peca(peca_id):
-    conexao = sqlite3.connect('sistema_pecas.db')
+    conexao = get_conexao()
     cursor = conexao.cursor()
     cursor.execute('DELETE FROM pecas_reservadas WHERE id = ?', (peca_id,))
     conexao.commit()
@@ -95,12 +96,25 @@ def apagar_peca(peca_id):
 def conciliar():
     arquivo = request.files.get('arquivo_nbs')
     
-    if not arquivo or arquivo.filename == '':
+    if not arquivo or not arquivo.filename.lower().endswith('.xlsx'):
         return redirect(url_for('index'))
 
-    df = pd.read_excel(arquivo)
+    try:
+        df = pd.read_excel(arquivo, dtype={'chassi': str, 'codigo_peca': str})
+    except Exception:
+        return redirect(url_for('index'))
+
+    colunas_obrigatorias = {'chassi', 'codigo_peca', 'quantidade'}
+    if not colunas_obrigatorias.issubset(set(df.columns)):
+        return redirect(url_for('index'))
+
+    df = df.dropna(subset=['chassi', 'codigo_peca'])
+    df['quantidade'] = pd.to_numeric(df['quantidade'], errors='coerce').fillna(0).astype(int)
+    df = df[df['quantidade'] > 0]
     
-    conexao = sqlite3.connect('sistema_pecas.db')
+    df_agrupado = df.groupby(['chassi', 'codigo_peca'], as_index=False)['quantidade'].sum()
+
+    conexao = get_conexao()
     cursor = conexao.cursor()
     
     cursor.execute('''
@@ -118,18 +132,11 @@ def conciliar():
     conexao.close()
 
     resultados = []
-    for index, linha in df.iterrows():
-        chassi_nbs = str(linha.get('chassi', '')).strip()
-        codigo = str(linha.get('codigo_peca', '')).strip()
+    for index, linha in df_agrupado.iterrows():
+        chassi_nbs = str(linha['chassi']).strip()
+        codigo = str(linha['codigo_peca']).strip()
+        qtd_nbs = int(linha['quantidade'])
         
-        if not codigo or codigo == 'nan':
-            continue
-            
-        try:
-            qtd_nbs = int(linha.get('quantidade', 0))
-        except (ValueError, TypeError):
-            qtd_nbs = 0
-            
         chave = (chassi_nbs, codigo)
         qtd_separada = reservas_db.get(chave, 0)
         
@@ -146,4 +153,4 @@ def conciliar():
     return render_template('conciliacao.html', resultados=resultados)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()

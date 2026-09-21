@@ -3,83 +3,273 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Controle de Peças</title>
+    <title>Sistema de Peças</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: auto; }
+        :root {
+            --primary: #d5001c;
+            --dark: #191919;
+            --gray-light: #f3f4f6;
+            --gray-border: #e5e7eb;
+            --text-main: #374151;
+            --white: #ffffff;
+        }
         
-        .box-ferramenta { background: #e9ecef; padding: 20px; margin-bottom: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .box-ferramenta h3 { margin-top: 0; color: #2c3e50; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--gray-light);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+        }
         
-        .form-group { display: flex; gap: 10px; flex-wrap: wrap; }
-        .form-group input { padding: 10px; border: 1px solid #ccc; border-radius: 3px; flex: 1; min-width: 150px; }
-        .form-group input[type="file"] { background: #fff; }
+        .container {
+            max-width: 1000px;
+            margin: auto;
+        }
         
-        .btn-salvar { background: #2c3e50; color: white; border: none; padding: 10px 20px; border-radius: 3px; cursor: pointer; font-weight: bold; }
-        .btn-salvar:hover { background: #1a252f; }
+        .header-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 10px;
+            display: inline-block;
+        }
         
-        .btn-conciliar { background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 3px; cursor: pointer; font-weight: bold; }
-        .btn-conciliar:hover { background: #219150; }
+        .grid-formularios {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 50px;
+        }
         
-        .card-chassi { background: #fff; margin-bottom: 15px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow: hidden; }
-        .cabecalho-chassi { background: #4a5c6a; color: #fff; padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .info-chassi h3 { margin: 0; font-size: 16px; margin-bottom: 5px; }
-        .badge-prateleira { background: #2c3e50; padding: 3px 8px; border-radius: 3px; font-size: 12px; }
+        .box-card {
+            background: var(--white);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-top: 4px solid var(--dark);
+        }
         
-        .conteudo-pecas { display: none; padding: 15px; background: #fafafa; }
-        .tabela-pecas { width: 100%; border-collapse: collapse; }
-        .tabela-pecas th, .tabela-pecas td { text-align: left; padding: 10px; border-bottom: 1px solid #ddd; }
-        .tabela-pecas th { background-color: #92a4bc; color: #fff; }
+        .box-card.destaque {
+            border-top: 4px solid var(--primary);
+        }
         
-        .btn-apagar { background: #e74c3c; color: white; border: none; padding: 8px 12px; border-radius: 3px; cursor: pointer; font-size: 12px; font-weight: bold; }
-        .btn-apagar:hover { background: #c0392b; }
-        .btn-apagar-sm { padding: 4px 8px; font-size: 11px; }
-        .coluna-acoes { width: 60px; text-align: right; }
+        .box-card h3 {
+            margin-top: 0;
+            color: var(--dark);
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        input {
+            padding: 12px 15px;
+            border: 1px solid var(--gray-border);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+            flex: 1;
+            min-width: 140px;
+            background-color: #fafafa;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background-color: var(--white);
+        }
+        
+        input[type="file"] {
+            padding: 9px 15px;
+            background: var(--white);
+            border: 1px dashed #ccc;
+        }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--white);
+            font-family: inherit;
+        }
+        
+        button:active {
+            transform: scale(0.98);
+        }
+        
+        .btn-primario { background-color: var(--dark); }
+        .btn-primario:hover { background-color: #333; }
+        
+        .btn-destaque { background-color: var(--primary); }
+        .btn-destaque:hover { background-color: #b00017; }
+        
+        .btn-perigo { background-color: #ef4444; padding: 8px 16px; font-size: 13px; }
+        .btn-perigo:hover { background-color: #dc2626; }
+        
+        .btn-icon { padding: 6px 12px; font-size: 12px; border-radius: 4px; }
+        
+        .secao-titulo {
+            font-size: 18px;
+            color: var(--dark);
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .card-chassi {
+            background: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            overflow: hidden;
+            border: 1px solid var(--gray-border);
+        }
+        
+        .cabecalho-chassi {
+            background: var(--dark);
+            color: var(--white);
+            padding: 20px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .cabecalho-chassi:hover {
+            background: #2a2a2a;
+        }
+        
+        .info-principal {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .info-principal h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        .badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .conteudo-pecas {
+            display: none;
+            padding: 25px;
+            background: var(--white);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-border);
+        }
+        
+        th {
+            font-weight: 600;
+            color: var(--text-main);
+            font-size: 13px;
+            text-transform: uppercase;
+            background: var(--gray-light);
+        }
+        
+        td { font-size: 14px; color: var(--dark); font-weight: 500; }
+        tr:last-child td { border-bottom: none; }
+        .col-acoes { text-align: right; width: 80px; }
+        
+        @media (max-width: 768px) {
+            .grid-formularios { grid-template-columns: 1fr; }
+            .cabecalho-chassi { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .info-principal { flex-direction: column; align-items: flex-start; gap: 8px; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         
-        <div class="box-ferramenta" style="background-color: #d1ecf1; border-left: 5px solid #17a2b8;">
-            <h3>Conciliar com Sistema NBS</h3>
-            <form action="/conciliar" method="POST" enctype="multipart/form-data" class="form-group">
-                <input type="file" name="arquivo_nbs" accept=".xlsx" required>
-                <button type="submit" class="btn-conciliar">Rodar Conciliação</button>
-            </form>
+        <div class="header-title">Gestão de Estoque</div>
+        
+        <div class="grid-formularios">
+            <div class="box-card destaque">
+                <h3>Conciliar com Sistema</h3>
+                <form action="/conciliar" method="POST" enctype="multipart/form-data" class="form-group">
+                    <input type="file" name="arquivo_nbs" accept=".xlsx" required>
+                    <button type="submit" class="btn-destaque">Processar Relatório</button>
+                </form>
+            </div>
+
+            <div class="box-card">
+                <h3>Nova Separação</h3>
+                <form action="/adicionar" method="POST" class="form-group">
+                    <div class="input-group">
+                        <input type="text" name="chassi" placeholder="Chassi (ex: PS470085)" required autocomplete="off">
+                        <input type="text" name="prateleira" placeholder="Prateleira" required autocomplete="off">
+                    </div>
+                    <div class="input-group">
+                        <input type="text" name="codigo_peca" placeholder="Código da Peça" required autocomplete="off">
+                        <input type="number" name="quantidade" placeholder="Qtd" required min="1" style="max-width: 100px;">
+                    </div>
+                    <button type="submit" class="btn-primario">Registrar Peça</button>
+                </form>
+            </div>
         </div>
 
-        <div class="box-ferramenta">
-            <h3>Nova Separação de Peça</h3>
-            <form action="/adicionar" method="POST" class="form-group">
-                <input type="text" name="chassi" placeholder="Chassi (ex: PS470085)" required autocomplete="off">
-                <input type="text" name="prateleira" placeholder="Prateleira" required autocomplete="off">
-                <input type="text" name="codigo_peca" placeholder="Código da Peça" required autocomplete="off">
-                <input type="number" name="quantidade" placeholder="Qtd" required min="1">
-                <button type="submit" class="btn-salvar">Salvar</button>
-            </form>
-        </div>
-
-        <h2>Locações Ativas</h2>
+        <div class="secao-titulo">Locações Ativas</div>
         
         {% for chassi, info in dados_locacao.items() %}
         <div class="card-chassi">
             <div class="cabecalho-chassi" onclick="alternarPecas('{{ chassi }}')">
-                <div class="info-chassi">
-                    <h3>CHASSI / GRUPO: {{ chassi }}</h3>
-                    <span class="badge-prateleira">Prateleira: {{ info.prateleira }}</span>
+                <div class="info-principal">
+                    <h3>{{ chassi }}</h3>
+                    <span class="badge">Prateleira: {{ info.prateleira }}</span>
                 </div>
-                <form action="/apagar_chassi/{{ chassi }}" method="POST" style="margin: 0;" onsubmit="event.stopPropagation(); return confirm('Tem a certeza que deseja apagar este chassi e todas as suas peças?');">
-                    <button type="submit" class="btn-apagar">Remover Chassi</button>
+                <form action="/apagar_chassi/{{ chassi }}" method="POST" style="margin: 0;" onsubmit="event.stopPropagation(); return confirm('Deseja apagar este chassi e todas as peças associadas?');">
+                    <button type="submit" class="btn-perigo">Remover</button>
                 </form>
             </div>
             
             <div id="pecas-{{ chassi }}" class="conteudo-pecas">
-                <table class="tabela-pecas">
+                <table>
                     <thead>
                         <tr>
-                            <th>CÓDIGO DA PEÇA</th>
-                            <th>QTD.</th>
-                            <th class="coluna-acoes">AÇÕES</th>
+                            <th>Código da Peça</th>
+                            <th>Quantidade</th>
+                            <th class="col-acoes">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -87,15 +277,15 @@
                         <tr>
                             <td>{{ peca.codigo }}</td>
                             <td>{{ peca.quantidade }}</td>
-                            <td class="coluna-acoes">
-                                <form action="/apagar_peca/{{ peca.id }}" method="POST" style="margin: 0;" onsubmit="return confirm('Tem a certeza que deseja remover esta peça?');">
-                                    <button type="submit" class="btn-apagar btn-apagar-sm">X</button>
+                            <td class="col-acoes">
+                                <form action="/apagar_peca/{{ peca.id }}" method="POST" style="margin: 0;" onsubmit="return confirm('Deseja remover esta peça?');">
+                                    <button type="submit" class="btn-perigo btn-icon">X</button>
                                 </form>
                             </td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="3">Nenhuma peça registada.</td>
+                            <td colspan="3" style="color: #6b7280; font-weight: 400;">Nenhuma peça registada.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
