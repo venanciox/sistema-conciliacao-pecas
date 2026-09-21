@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Controle de Peças</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: auto; }
+        .card-chassi { background: #fff; margin-bottom: 15px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow: hidden; }
+        .cabecalho-chassi { background: #4a5c6a; color: #fff; padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .cabecalho-chassi h3 { margin: 0; font-size: 16px; }
+        .badge-prateleira { background: #2c3e50; padding: 5px 10px; border-radius: 3px; font-size: 12px; }
+        .conteudo-pecas { display: none; padding: 15px; background: #fafafa; }
+        .tabela-pecas { width: 100%; border-collapse: collapse; }
+        .tabela-pecas th, .tabela-pecas td { text-align: left; padding: 10px; border-bottom: 1px solid #ddd; }
+        .tabela-pecas th { background-color: #92a4bc; color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Aba de Locação</h2>
+        
+        {% for chassi, info in dados_locacao.items() %}
+        <div class="card-chassi">
+            <div class="cabecalho-chassi" onclick="alternarPecas('{{ chassi }}')">
+                <h3>CHASSI / GRUPO: {{ chassi }}</h3>
+                <span class="badge-prateleira">Prateleira: {{ info.prateleira }}</span>
+            </div>
+            <div id="pecas-{{ chassi }}" class="conteudo-pecas">
+                <table class="tabela-pecas">
+                    <thead>
+                        <tr>
+                            <th>CÓDIGO DA PEÇA</th>
+                            <th>QTD.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for peca in info.pecas %}
+                        <tr>
+                            <td>{{ peca.codigo }}</td>
+                            <td>{{ peca.quantidade }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="2">Nenhuma peça registrada.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endfor %}
+        
+    </div>
+
+    <script>
+        function alternarPecas(chassi) {
+            const elemento = document.getElementById('pecas-' + chassi);
+            if (elemento.style.display === 'block') {
+                elemento.style.display = 'none';
+            } else {
+                elemento.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
