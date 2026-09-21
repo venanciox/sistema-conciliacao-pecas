@@ -7,32 +7,79 @@
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
         .container { max-width: 800px; margin: auto; }
+        
+        .box-ferramenta { background: #e9ecef; padding: 20px; margin-bottom: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .box-ferramenta h3 { margin-top: 0; color: #2c3e50; }
+        
+        .form-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        .form-group input { padding: 10px; border: 1px solid #ccc; border-radius: 3px; flex: 1; min-width: 150px; }
+        .form-group input[type="file"] { background: #fff; }
+        
+        .btn-salvar { background: #2c3e50; color: white; border: none; padding: 10px 20px; border-radius: 3px; cursor: pointer; font-weight: bold; }
+        .btn-salvar:hover { background: #1a252f; }
+        
+        .btn-conciliar { background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 3px; cursor: pointer; font-weight: bold; }
+        .btn-conciliar:hover { background: #219150; }
+        
         .card-chassi { background: #fff; margin-bottom: 15px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow: hidden; }
         .cabecalho-chassi { background: #4a5c6a; color: #fff; padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .cabecalho-chassi h3 { margin: 0; font-size: 16px; }
-        .badge-prateleira { background: #2c3e50; padding: 5px 10px; border-radius: 3px; font-size: 12px; }
+        .info-chassi h3 { margin: 0; font-size: 16px; margin-bottom: 5px; }
+        .badge-prateleira { background: #2c3e50; padding: 3px 8px; border-radius: 3px; font-size: 12px; }
+        
         .conteudo-pecas { display: none; padding: 15px; background: #fafafa; }
         .tabela-pecas { width: 100%; border-collapse: collapse; }
         .tabela-pecas th, .tabela-pecas td { text-align: left; padding: 10px; border-bottom: 1px solid #ddd; }
         .tabela-pecas th { background-color: #92a4bc; color: #fff; }
+        
+        .btn-apagar { background: #e74c3c; color: white; border: none; padding: 8px 12px; border-radius: 3px; cursor: pointer; font-size: 12px; font-weight: bold; }
+        .btn-apagar:hover { background: #c0392b; }
+        .btn-apagar-sm { padding: 4px 8px; font-size: 11px; }
+        .coluna-acoes { width: 60px; text-align: right; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Aba de Locação</h2>
+        
+        <div class="box-ferramenta" style="background-color: #d1ecf1; border-left: 5px solid #17a2b8;">
+            <h3>Conciliar com Sistema NBS</h3>
+            <form action="/conciliar" method="POST" enctype="multipart/form-data" class="form-group">
+                <input type="file" name="arquivo_nbs" accept=".xlsx" required>
+                <button type="submit" class="btn-conciliar">Rodar Conciliação</button>
+            </form>
+        </div>
+
+        <div class="box-ferramenta">
+            <h3>Nova Separação de Peça</h3>
+            <form action="/adicionar" method="POST" class="form-group">
+                <input type="text" name="chassi" placeholder="Chassi (ex: PS470085)" required autocomplete="off">
+                <input type="text" name="prateleira" placeholder="Prateleira" required autocomplete="off">
+                <input type="text" name="codigo_peca" placeholder="Código da Peça" required autocomplete="off">
+                <input type="number" name="quantidade" placeholder="Qtd" required min="1">
+                <button type="submit" class="btn-salvar">Salvar</button>
+            </form>
+        </div>
+
+        <h2>Locações Ativas</h2>
         
         {% for chassi, info in dados_locacao.items() %}
         <div class="card-chassi">
             <div class="cabecalho-chassi" onclick="alternarPecas('{{ chassi }}')">
-                <h3>CHASSI / GRUPO: {{ chassi }}</h3>
-                <span class="badge-prateleira">Prateleira: {{ info.prateleira }}</span>
+                <div class="info-chassi">
+                    <h3>CHASSI / GRUPO: {{ chassi }}</h3>
+                    <span class="badge-prateleira">Prateleira: {{ info.prateleira }}</span>
+                </div>
+                <form action="/apagar_chassi/{{ chassi }}" method="POST" style="margin: 0;" onsubmit="event.stopPropagation(); return confirm('Tem a certeza que deseja apagar este chassi e todas as suas peças?');">
+                    <button type="submit" class="btn-apagar">Remover Chassi</button>
+                </form>
             </div>
+            
             <div id="pecas-{{ chassi }}" class="conteudo-pecas">
                 <table class="tabela-pecas">
                     <thead>
                         <tr>
                             <th>CÓDIGO DA PEÇA</th>
                             <th>QTD.</th>
+                            <th class="coluna-acoes">AÇÕES</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -40,10 +87,15 @@
                         <tr>
                             <td>{{ peca.codigo }}</td>
                             <td>{{ peca.quantidade }}</td>
+                            <td class="coluna-acoes">
+                                <form action="/apagar_peca/{{ peca.id }}" method="POST" style="margin: 0;" onsubmit="return confirm('Tem a certeza que deseja remover esta peça?');">
+                                    <button type="submit" class="btn-apagar btn-apagar-sm">X</button>
+                                </form>
+                            </td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="2">Nenhuma peça registrada.</td>
+                            <td colspan="3">Nenhuma peça registada.</td>
                         </tr>
                         {% endfor %}
                     </tbody>

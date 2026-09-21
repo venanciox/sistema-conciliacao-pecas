@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultado da Conciliação</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: auto; background: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h2 { color: #2c3e50; margin-top: 0; }
+        .tabela-conciliacao { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .tabela-conciliacao th, .tabela-conciliacao td { text-align: left; padding: 12px; border-bottom: 1px solid #ddd; }
+        .tabela-conciliacao th { background-color: #2c3e50; color: #fff; }
+        .status-ok { background-color: #d4edda; color: #155724; font-weight: bold; border-radius: 3px; padding: 3px 8px; }
+        .status-falta { background-color: #f8d7da; color: #721c24; font-weight: bold; border-radius: 3px; padding: 3px 8px; }
+        .status-excesso { background-color: #fff3cd; color: #856404; font-weight: bold; border-radius: 3px; padding: 3px 8px; }
+        .btn-voltar { display: inline-block; margin-top: 20px; background: #92a4bc; color: white; text-decoration: none; padding: 10px 20px; border-radius: 3px; font-weight: bold; }
+        .btn-voltar:hover { background: #7a8b9e; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Status de Separação por Chassi</h2>
+        
+        <table class="tabela-conciliacao">
+            <thead>
+                <tr>
+                    <th>CHASSI</th>
+                    <th>CÓDIGO DA PEÇA</th>
+                    <th>O NBS PEDE (QTD)</th>
+                    <th>SEPARADO NA PRATELEIRA</th>
+                    <th>STATUS DO CARRO</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in resultados %}
+                <tr>
+                    <td><strong>{{ item.chassi }}</strong></td>
+                    <td>{{ item.codigo }}</td>
+                    <td>{{ item.qtd_nbs }}</td>
+                    <td>{{ item.qtd_separada }}</td>
+                    <td>
+                        {% if item.status == 0 %}
+                            <span class="status-ok">Completo ✓</span>
+                        {% elif item.status > 0 %}
+                            <span class="status-falta">Falta separar: {{ item.status }}</span>
+                        {% else %}
+                            <span class="status-excesso">Separado a mais: {{ item.status | abs }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5">Nenhum dado processado. Verifique o cabeçalho do ficheiro Excel.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <a href="/" class="btn-voltar">Voltar ao Dashboard</a>
+    </div>
+</body>
+</html>
